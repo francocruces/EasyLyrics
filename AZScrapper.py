@@ -14,7 +14,8 @@ from bs4 import BeautifulSoup
 from telepot.namedtuple import InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardButton, \
     InlineKeyboardMarkup
 
-from Config import MAX_RESULTS, NO_RESULTS_ALERT
+from Config import MAX_RESULTS, NO_RESULTS_ALERT, CANCEL_DATA_STRING, NO_RESULTS_TEXT, CANCEL_BUTTON_TEXT, \
+    TITLE_ARTIST_SEPARATOR
 
 __author__ = "Franco Cruces Ayala"
 
@@ -28,6 +29,10 @@ def get_lyrics_as_inline_keyboard(query):
     """
     buttons = get_inline_keyboard_buttons(query)
     if len(buttons) > 0:
+        buttons.append([InlineKeyboardButton(
+            text=CANCEL_BUTTON_TEXT,
+            callback_data=CANCEL_DATA_STRING,
+        )])
         return [InlineQueryResultArticle(
             id=query,
             title="Search for " + query,
@@ -40,7 +45,7 @@ def get_lyrics_as_inline_keyboard(query):
         # TODO: Add a cancel button.
     else:
         return [InlineQueryResultArticle(
-            id=0, title="NO RESULTS", input_message_content=InputTextMessageContent(
+            id=0, title=NO_RESULTS_TEXT, input_message_content=InputTextMessageContent(
                 message_text=NO_RESULTS_ALERT,
                 parse_mode="Markdown")
         )]
@@ -88,7 +93,7 @@ def get_inline_keyboard_buttons(query):
     buttons = []
     search_results = get_search_result(query)
     for song in search_results:
-        title = song['title'] + " by " + song['artist']
+        title = song['title'] + TITLE_ARTIST_SEPARATOR + song['artist']
         buttons.append([InlineKeyboardButton(
             text=title,
             callback_data=song['url'].replace('https://www.azlyrics.com/lyrics/', ''),
@@ -108,10 +113,10 @@ def get_lyric_body(url):
     body = BeautifulSoup(page.read(), 'lxml').html.body.find_all(
         "div", class_="col-xs-12 col-lg-8 text-center")[0].find_all("div")
     lyrics = body[6].get_text()
-    artist = body[4].text.replace(" Lyrics", "").replace("\n","")
+    artist = body[4].text.replace(" Lyrics", "").replace("\n", "")
     title = body[3].text.replace(" lyrics", "").replace('"', '')
     print("Done: " + url)
-    return "*" + title + " by " + artist + "*" + lyrics
+    return "*" + title + TITLE_ARTIST_SEPARATOR + artist + "*" + lyrics
 
 
 def get_lyric_body_from_id(an_id):
@@ -147,7 +152,7 @@ def get_lyrics(query):
     result = []
     search_results = get_search_result(query)
     for song in search_results:
-        title = song['title'] + " by " + song['artist']
+        title = song['title'] + TITLE_ARTIST_SEPARATOR + song['artist']
         result.append(InlineQueryResultArticle(
             id=song['url'].replace('https://www.azlyrics.com/lyrics/', ''),
             title=title,
@@ -158,7 +163,7 @@ def get_lyrics(query):
             )))
     if len(result) == 0:
         result.append(InlineQueryResultArticle(
-            id=0, title="NO RESULTS", input_message_content=InputTextMessageContent(
+            id=0, title=NO_RESULTS_TEXT, input_message_content=InputTextMessageContent(
                 message_text=NO_RESULTS_ALERT,
                 parse_mode="Markdown")
         ))
