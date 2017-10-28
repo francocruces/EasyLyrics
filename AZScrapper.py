@@ -11,17 +11,44 @@ import urllib.request
 import requests
 import requests.adapters
 from bs4 import BeautifulSoup
-from telepot.namedtuple import InlineQueryResultArticle, InputTextMessageContent
-from Config import MAX_INLINE_RESULTS
+from telepot.namedtuple import InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardButton, \
+    InlineKeyboardMarkup
+
+from Config import MAX_RESULTS
 
 __author__ = "Franco Cruces Ayala"
 
 
-def get_lyrics(query):
+def get_lyrics_as_inline_keyboard(query):
     """
-    Get lyrics from AZLyrics. First search and then generate Articles as a Inline Query Result.
+    Return a InlineQueryResultArticle object. The selection sends a message with an inline keyboard, where every button
+    is a search result.
     :param query: A query for searching @https://search.azlyrics.com/
-    :return: Array with InlineQueryResultArticle
+    :return: an InlineQueryResultArticle object
+    """
+    buttons = get_inline_keyboard_buttons(query)
+    print("buttons: " + str(buttons))
+    if len(buttons) > 0:
+        return [InlineQueryResultArticle(
+            id=query,
+            title="Search for " + query,
+            description=str(len(buttons)) + " results found",
+            input_message_content=InputTextMessageContent(message_text="Choose a result to load"),
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
+        )]
+        # TODO: Add a cancel button.
+    else:
+        return [InlineQueryResultArticle(
+            id=0, title="NO RESULTS", input_message_content=InputTextMessageContent(
+                message_text="No results :c")
+        )]
+
+
+def get_search_result(query):
+    """
+    Search given query at https://search.azlyrics.com/. Return array of songs where each element is a dictionary
+    :param query: A query for searching @https://search.azlyrics.com/
+    :return: Array with dictionaries
     """
     print("Loading lyrics:" + query)
     url = 'https://search.azlyrics.com/search.php?q=' + query
@@ -36,31 +63,34 @@ def get_lyrics(query):
                 try:
                     song = j.td.find_all("b")
                     if len(song) == 2:
-                        lurl = j.a.get('href')
-                        print(lurl)
-                        title = song[0].get_text() + " by " + song[1].get_text()
-                        jsong = InlineQueryResultArticle(
-                            id=lurl.replace('https://www.azlyrics.com/lyrics/', ''),
-                            title=title,
-                            description=j.td.small.get_text(),
-                            input_message_content=InputTextMessageContent(
-                                message_text=get_lyric_body(lurl)
-                            ), # url=lurl
-                        )
-                        count += 1
-                        result.append(jsong)
-                        print("Result " + str(count) + " loaded " + lurl)
+                        result.append({
+                            'title': song[0].get_text(),
+                            'artist': song[1].get_text(),
+                            'url': j.a.get('href')
+                        })
                 except urllib.error.HTTPError:
                     print("Page unreachable")
                     sys.exit(1)
-                if count > MAX_INLINE_RESULTS:
+                if count > MAX_RESULTS != -1:
                     break
-    if len(result) == 0:
-        result.append(InlineQueryResultArticle(
-            id=0, title="NO RESULTS", input_message_content=InputTextMessageContent(
-                message_text="No results :c")
-        ))
     return result
+
+
+def get_inline_keyboard_buttons(query):
+    """
+    Get lyrics from AZLyrics. First search and then generate Articles as a Inline Query Result.
+    :param query: A query for searching @https://search.azlyrics.com/
+    :return: Array with InlineKeyboardButtons
+    """
+    buttons = []
+    search_results = get_search_result(query)
+    for song in search_results:
+        title = song['title'] + " by " + song['artist']
+        buttons.append([InlineKeyboardButton(
+            text=title,
+            callback_data=song['url'].replace('https://www.azlyrics.com/lyrics/', ''),
+        )])
+    return buttons
 
 
 def get_lyric_body(url):
@@ -70,7 +100,7 @@ def get_lyric_body(url):
     :return: Lyrics as a string
     """
     time.sleep(2)
-    print("Lyrics: " + url)
+    print("Getting lyrics body: " + url)
     page = urllib.request.urlopen(url)
     lyrics = BeautifulSoup(page.read(), 'lxml').html.body.find_all(
         "div", class_="col-xs-12 col-lg-8 text-center")[0].find_all("div")[6].get_text()
@@ -78,9 +108,13 @@ def get_lyric_body(url):
     return lyrics
 
 
+def get_lyric_body_from_id(an_id):
+    return get_lyric_body('https://www.azlyrics.com/lyrics/' + an_id)
+
+
 def get_lyric_body_from_query(given_id, query):
     """
-    Currently not used.
+    Deprecated. Currently not used.
     """
     print("Loading lyrics:" + query)
     url = 'https://search.azlyrics.com/search.php?q=' + query
@@ -97,3 +131,28 @@ def get_lyric_body_from_query(given_id, query):
                     count += 1
 
     return "Couldn't fetch lyrics"
+
+
+def get_lyrics(query):
+    """
+    Deprecated. Get lyrics from AZLyrics. First search and then generate Articles as a Inline Query Result.
+    :param query: A query for searching @https://search.azlyrics.com/
+    :return: Array with InlineQueryResultArticle
+    """
+    result = []
+    search_results = get_search_result(query)
+    for song in search_results:
+        title = song['title'] + " by " + song['artist']
+        result.append(InlineQueryResultArticle(
+            id=song['url'].replace('https://www.azlyrics.com/lyrics/', ''),
+            title=title,
+            description="",
+            input_message_content=InputTextMessageContent(
+                message_text="Won't load too many lyrics at once"  # This method is deprecated
+            )))
+    if len(result) == 0:
+        result.append(InlineQueryResultArticle(
+            id=0, title="NO RESULTS", input_message_content=InputTextMessageContent(
+                message_text="No results :c")
+        ))
+    return result
