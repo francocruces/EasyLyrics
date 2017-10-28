@@ -15,7 +15,7 @@ from telepot.namedtuple import InlineQueryResultArticle, InputTextMessageContent
     InlineKeyboardMarkup
 
 from Config import MAX_RESULTS, NO_RESULTS_ALERT, CANCEL_DATA_STRING, NO_RESULTS_TEXT, CANCEL_BUTTON_TEXT, \
-    TITLE_ARTIST_SEPARATOR
+    TITLE_ARTIST_SEPARATOR, REFINE_BUTTON_TEXT
 
 __author__ = "Franco Cruces Ayala"
 
@@ -30,6 +30,10 @@ def get_lyrics_as_inline_keyboard(query):
     buttons = get_inline_keyboard_buttons(query)
     if len(buttons) > 0:
         buttons.append([InlineKeyboardButton(
+            text=REFINE_BUTTON_TEXT,
+            switch_inline_query_current_chat=query
+        )])
+        buttons.append([InlineKeyboardButton(
             text=CANCEL_BUTTON_TEXT,
             callback_data=CANCEL_DATA_STRING,
         )])
@@ -42,7 +46,6 @@ def get_lyrics_as_inline_keyboard(query):
                                                           parse_mode="Markdown"),
             reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
         )]
-        # TODO: Add a cancel button.
     else:
         return [InlineQueryResultArticle(
             id=0, title=NO_RESULTS_TEXT, input_message_content=InputTextMessageContent(

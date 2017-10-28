@@ -8,9 +8,9 @@ import telepot
 from telepot.aio.delegate import per_inline_from_id, create_open, pave_event_space, intercept_callback_query_origin
 from telepot.aio.helper import InlineUserHandler, AnswererMixin, InterceptCallbackQueryMixin
 from telepot.aio.loop import MessageLoop
-from Config import MAX_MESSAGE_SIZE, MESSAGE_TOO_LONG_ALERT, CANCEL_DATA_STRING, SEARCH_CANCELLED_ALERT
 
 from AZScrapper import get_lyrics_as_inline_keyboard, get_lyric_body_from_id
+from Config import MAX_MESSAGE_SIZE, MESSAGE_TOO_LONG_ALERT, CANCEL_DATA_STRING, SEARCH_CANCELLED_ALERT
 from __TOKEN__ import TOKEN  # Replace with your own token. Provided by BotFather
 
 __author__ = "Franco Cruces Ayala"
@@ -53,7 +53,9 @@ class InlineHandler(InlineUserHandler, AnswererMixin, InterceptCallbackQueryMixi
         print(msg)
         in_id = msg['inline_message_id']
         data = msg['data']
-        if data != CANCEL_DATA_STRING:
+        if data == CANCEL_DATA_STRING:
+            await self.bot.editMessageText(str(in_id), SEARCH_CANCELLED_ALERT, parse_mode="Markdown")
+        else:
             lyrics = get_lyric_body_from_id(data)
             if len(lyrics) <= MAX_MESSAGE_SIZE:
                 await self.bot.editMessageText(str(in_id), lyrics, parse_mode="Markdown")
@@ -62,8 +64,6 @@ class InlineHandler(InlineUserHandler, AnswererMixin, InterceptCallbackQueryMixi
                 while lyrics != "":
                     await self.bot.sendMessage(msg['from']['id'], lyrics[:MAX_MESSAGE_SIZE])
                     lyrics = lyrics[MAX_MESSAGE_SIZE:]
-        else:
-            await self.bot.editMessageText(str(in_id), SEARCH_CANCELLED_ALERT, parse_mode="Markdown")
 
 
 # ASYNC MAIN
