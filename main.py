@@ -10,7 +10,7 @@ from telepot.aio.helper import InlineUserHandler, AnswererMixin, InterceptCallba
 from telepot.aio.loop import MessageLoop
 
 from AZScrapper import get_lyrics_as_inline_keyboard, get_lyric_body_from_id
-from __TOKEN__ import TOKEN
+from __TOKEN__ import TOKEN  # Replace with your own token. Provided by BotFather
 
 __author__ = "Franco Cruces Ayala"
 
@@ -36,8 +36,7 @@ class InlineHandler(InlineUserHandler, AnswererMixin, InterceptCallbackQueryMixi
             :return: Lyrics as articles
             """
             print(msg)
-            query_string = telepot.glance(msg, flavor='inline_query')
-            return get_lyrics_as_inline_keyboard(query_string)
+            return get_lyrics_as_inline_keyboard(msg['query'])
 
         self.answerer.answer(msg, compute_answer)
 
@@ -53,12 +52,13 @@ class InlineHandler(InlineUserHandler, AnswererMixin, InterceptCallbackQueryMixi
         print(msg)
         in_id = msg['inline_message_id']
         await self.bot.editMessageText(str(in_id), get_lyric_body_from_id(msg['data']))
+        # TODO: Catch MESSAGE_TOO_LONG error
 
 
-### ASYNC MAIN
+# ASYNC MAIN
 bot = telepot.aio.DelegatorBot(TOKEN, [intercept_callback_query_origin(
     pave_event_space())(
-    per_inline_from_id(), create_open, InlineHandler, timeout=20)
+    per_inline_from_id(), create_open, InlineHandler, timeout=10)
 ])
 
 loop = asyncio.get_event_loop()

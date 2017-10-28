@@ -27,13 +27,13 @@ def get_lyrics_as_inline_keyboard(query):
     :return: an InlineQueryResultArticle object
     """
     buttons = get_inline_keyboard_buttons(query)
-    print("buttons: " + str(buttons))
     if len(buttons) > 0:
         return [InlineQueryResultArticle(
             id=query,
             title="Search for " + query,
             description=str(len(buttons)) + " results found",
-            input_message_content=InputTextMessageContent(message_text="Choose a result to load"),
+            input_message_content=InputTextMessageContent(message_text='Results for "' + query + '".\n' + str(
+                len(buttons)) + ' results found.\n' + 'Choose a result to load.'),
             reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
         )]
         # TODO: Add a cancel button.
@@ -50,11 +50,11 @@ def get_search_result(query):
     :param query: A query for searching @https://search.azlyrics.com/
     :return: Array with dictionaries
     """
-    print("Loading lyrics:" + query)
-    url = 'https://search.azlyrics.com/search.php?q=' + query
+    print("Loading lyrics: " + str(query))
+    url = 'https://search.azlyrics.com/search.php?q=' + str(query)
     page = requests.get(url)
     panels = BeautifulSoup(page.content, 'lxml').find_all("div", class_='panel')
-    print("Search results loaded: " + query)
+    print("Search results loaded: " + str(query))
     result = []
     count = 1
     for i in panels:
@@ -116,7 +116,7 @@ def get_lyric_body_from_query(given_id, query):
     """
     Deprecated. Currently not used.
     """
-    print("Loading lyrics:" + query)
+    print("Loading lyrics: " + query)
     url = 'https://search.azlyrics.com/search.php?q=' + query
     page = requests.get(url)
     panels = BeautifulSoup(page.content, 'lxml').find_all("div", class_='panel')
