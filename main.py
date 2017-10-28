@@ -54,7 +54,7 @@ class InlineHandler(InlineUserHandler, AnswererMixin, InterceptCallbackQueryMixi
         in_id = msg['inline_message_id']
         lyrics = get_lyric_body_from_id(msg['data'])
         if len(lyrics) <= MAX_MESSAGE_SIZE:
-            await self.bot.editMessageText(str(in_id), lyrics)
+            await self.bot.editMessageText(str(in_id), lyrics, parse_mode="Markdown")
         else:
             await self.bot.editMessageText(str(in_id), MESSAGE_TOO_LONG_ALERT, parse_mode="Markdown")
             while lyrics != "":

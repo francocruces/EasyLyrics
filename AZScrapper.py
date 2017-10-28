@@ -32,8 +32,9 @@ def get_lyrics_as_inline_keyboard(query):
             id=query,
             title="Search for " + query,
             description=str(len(buttons)) + " results found",
-            input_message_content=InputTextMessageContent(message_text='Results for "' + query + '".\n' + str(
-                len(buttons)) + ' results found.\n' + 'Choose a result to load.'),
+            input_message_content=InputTextMessageContent(message_text='Results for "*' + query + '*".\n' + str(
+                len(buttons)) + ' results found.\n' + '_Choose a result to load._',
+                                                          parse_mode="Markdown"),
             reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
         )]
         # TODO: Add a cancel button.
@@ -104,10 +105,13 @@ def get_lyric_body(url):
     time.sleep(2)
     print("Getting lyrics body: " + url)
     page = urllib.request.urlopen(url)
-    lyrics = BeautifulSoup(page.read(), 'lxml').html.body.find_all(
-        "div", class_="col-xs-12 col-lg-8 text-center")[0].find_all("div")[6].get_text()
+    body = BeautifulSoup(page.read(), 'lxml').html.body.find_all(
+        "div", class_="col-xs-12 col-lg-8 text-center")[0].find_all("div")
+    lyrics = body[6].get_text()
+    artist = body[4].text.replace(" Lyrics", "").replace("\n","")
+    title = body[3].text.replace(" lyrics", "").replace('"', '')
     print("Done: " + url)
-    return lyrics
+    return "*" + title + " by " + artist + "*" + lyrics
 
 
 def get_lyric_body_from_id(an_id):
