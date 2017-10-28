@@ -8,6 +8,7 @@ import telepot
 from telepot.aio.delegate import per_inline_from_id, create_open, pave_event_space, intercept_callback_query_origin
 from telepot.aio.helper import InlineUserHandler, AnswererMixin, InterceptCallbackQueryMixin
 from telepot.aio.loop import MessageLoop
+from Config import MAX_MESSAGE_SIZE, MESSAGE_TOO_LONG_ALERT
 
 from AZScrapper import get_lyrics_as_inline_keyboard, get_lyric_body_from_id
 from __TOKEN__ import TOKEN  # Replace with your own token. Provided by BotFather
@@ -51,8 +52,14 @@ class InlineHandler(InlineUserHandler, AnswererMixin, InterceptCallbackQueryMixi
     async def on_callback_query(self, msg):
         print(msg)
         in_id = msg['inline_message_id']
-        await self.bot.editMessageText(str(in_id), get_lyric_body_from_id(msg['data']))
-        # TODO: Catch MESSAGE_TOO_LONG error
+        lyrics = get_lyric_body_from_id(msg['data'])
+        if len(lyrics) <= MAX_MESSAGE_SIZE:
+            await self.bot.editMessageText(str(in_id), lyrics)
+        else:
+            await self.bot.editMessageText(str(in_id), MESSAGE_TOO_LONG_ALERT, parse_mode="Markdown")
+            while lyrics != "":
+                await self.bot.sendMessage(msg['from']['id'], lyrics[:MAX_MESSAGE_SIZE])
+                lyrics = lyrics[MAX_MESSAGE_SIZE:]
 
 
 # ASYNC MAIN

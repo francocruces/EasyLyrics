@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup
 from telepot.namedtuple import InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardButton, \
     InlineKeyboardMarkup
 
-from Config import MAX_RESULTS
+from Config import MAX_RESULTS, NO_RESULTS_ALERT
 
 __author__ = "Franco Cruces Ayala"
 
@@ -40,7 +40,8 @@ def get_lyrics_as_inline_keyboard(query):
     else:
         return [InlineQueryResultArticle(
             id=0, title="NO RESULTS", input_message_content=InputTextMessageContent(
-                message_text="No results :c")
+                message_text=NO_RESULTS_ALERT,
+                parse_mode="Markdown")
         )]
 
 
@@ -56,7 +57,7 @@ def get_search_result(query):
     panels = BeautifulSoup(page.content, 'lxml').find_all("div", class_='panel')
     print("Search results loaded: " + str(query))
     result = []
-    count = 1
+    count = 0
     for i in panels:
         if "Song" in i.div.text:
             for j in i.table.find_all("tr"):
@@ -68,6 +69,7 @@ def get_search_result(query):
                             'artist': song[1].get_text(),
                             'url': j.a.get('href')
                         })
+                    count = count + 1
                 except urllib.error.HTTPError:
                     print("Page unreachable")
                     sys.exit(1)
@@ -128,7 +130,6 @@ def get_lyric_body_from_query(given_id, query):
                 if len(j.td.find_all("b")) == 2:
                     if count == int(given_id):
                         return get_lyric_body(j.a.get('href'))
-                    count += 1
 
     return "Couldn't fetch lyrics"
 
@@ -148,11 +149,13 @@ def get_lyrics(query):
             title=title,
             description="",
             input_message_content=InputTextMessageContent(
-                message_text="Won't load too many lyrics at once"  # This method is deprecated
+                message_text="Won't load too many lyrics at once",  # This method is deprecated
+                parse_mode="Markdown"
             )))
     if len(result) == 0:
         result.append(InlineQueryResultArticle(
             id=0, title="NO RESULTS", input_message_content=InputTextMessageContent(
-                message_text="No results :c")
+                message_text=NO_RESULTS_ALERT,
+                parse_mode="Markdown")
         ))
     return result
