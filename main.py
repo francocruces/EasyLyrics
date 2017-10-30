@@ -3,6 +3,7 @@ Simple telegram inline bot with an inline keyboard. Gets lyrics from AZ Lyrics.
 """
 
 import asyncio
+import time
 
 import telepot
 from telepot.aio.delegate import per_inline_from_id, create_open, pave_event_space, intercept_callback_query_origin
@@ -31,7 +32,7 @@ class InlineHandler(InlineUserHandler, AnswererMixin, InterceptCallbackQueryMixi
         :return: Results for the inline query
         """
 
-        def compute_answer():
+        async def compute_answer():
             """
             Function generating the answer for the handler.
             :return: Lyrics as articles
@@ -74,7 +75,7 @@ bot = telepot.aio.DelegatorBot(TOKEN, [intercept_callback_query_origin(
 
 loop = asyncio.get_event_loop()
 
-loop.create_task(MessageLoop(bot).run_forever())
+loop.create_task(MessageLoop(bot).run_forever(2.5))
 print('Listening ...')
 
 loop.run_forever()

@@ -60,6 +60,9 @@ def get_search_result(query):
     :param query: A query for searching @https://search.azlyrics.com/
     :return: Array with dictionaries
     """
+    time.sleep(2)
+    if query == "":
+        return []
     print("Loading lyrics: " + str(query))
     url = 'https://search.azlyrics.com/search.php?q=' + str(query)
     page = requests.get(url)
@@ -110,7 +113,6 @@ def get_lyric_body(url):
     :param url: AZ Lyrics' URL
     :return: Lyrics as a string
     """
-    time.sleep(2)
     print("Getting lyrics body: " + url)
     page = urllib.request.urlopen(url)
     body = BeautifulSoup(page.read(), 'lxml').html.body.find_all(
