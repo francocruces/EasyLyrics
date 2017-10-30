@@ -4,7 +4,6 @@ Please don't request various lyrics without sleep in between or you'll get block
 """
 
 import sys
-import time
 import urllib.error
 import urllib.request
 
@@ -60,7 +59,6 @@ def get_search_result(query):
     :param query: A query for searching @https://search.azlyrics.com/
     :return: Array with dictionaries
     """
-    time.sleep(2)
     if query == "":
         return []
     print("Loading lyrics: " + str(query))
